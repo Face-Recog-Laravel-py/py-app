@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSS Sprite Animation</title>
+</head>
+<body>
+	<button id="snap">Kirim</button>
+	<div id="demo"></div>
+	<div>
+		<div style="float:left">
+			<video id="video" width="320" height="240" autoplay></video>
+		</div>
+		<div style="float:left">
+			<canvas id="canvas" width="640" height="480"></canvas>
+		</div>
+		<div style="clear:both"></div>
+	</div>
+	
+	<script type="">
+		// Grab elements, create settings, etc.
+		var video = document.getElementById('video');
+
+		// Get access to the camera!
+		if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+			navigator.mediaDevices.getUserMedia({ video: true, audio:true }).then(function(stream) {
+				video.srcObject = stream;
+				video.play();
+			});
+		}
+		// Elements for taking the snapshot
+		var canvas = document.getElementById('canvas');
+		var context = canvas.getContext('2d');
+		var video = document.getElementById('video');
+		var demo = document.getElementById("demo");
+
+		// Trigger photo take
+		document.getElementById("snap").addEventListener("click", function() {
+			takepicture()
+		});
+
+		function takepicture() {
+			demo.innerHTML = "Memproses....";
+			context.drawImage(video, 0, 0, 640, 480);
+			const data = canvas.toDataURL("image/png", 1.0);
+			const xhttp = new XMLHttpRequest();
+			var fd = new FormData();
+			fd.append('image', data);
+			xhttp.onload = function() {
+				const response = JSON.parse(this.responseText);
+				if (response.status === 'success') {
+					window.location.href = `http://localhost:8000/test?status=success&name=${response.name}`;
+				} else {
+					demo.innerHTML = response.message;
+				}
+			}
+			xhttp.open("POST", "http://localhost:5000/");
+			xhttp.send(fd);
+		}
+	</script>
+</body>
+</html>
